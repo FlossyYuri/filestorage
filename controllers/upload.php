@@ -48,7 +48,7 @@ if (isset($_POST["appname"]) && isset($_FILES["file"])) {
     }
     if (move_uploaded_file($_FILES["file"]["tmp_name"], $target_file)) {
       http_response_code(201);
-      $response->url = base_url(true) . $_POST["appname"] . '/' . htmlspecialchars($date->getTimestamp() . '-' . basename($_FILES["file"]["name"]));
+      $response->url = base_url(true) . '/uploads/' . $_POST["appname"] . '/' . htmlspecialchars($date->getTimestamp() . '-' . basename($_FILES["file"]["name"]));
     } else {
       http_response_code(400);
       $response->msg = "Sorry, there was an error uploading your file.";
