@@ -1,10 +1,6 @@
 
 <?php
-$target_dir = "../" . $_POST["appname"] . '/';
-$date = new DateTime();
-$target_file = $target_dir . $date->getTimestamp() . '-' . basename($_FILES["file"]["name"]);
-$uploadOk = 1;
-$imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+$response = new stdClass();
 function base_url($atRoot = FALSE, $atCore = FALSE, $parse = FALSE)
 {
   if (isset($_SERVER['HTTP_HOST'])) {
@@ -28,49 +24,40 @@ function base_url($atRoot = FALSE, $atCore = FALSE, $parse = FALSE)
   return $base_url;
 }
 // Check if image file is a actual image or fake image
-if (isset($_POST["appname"])) {
-  $check = getimagesize($_FILES["file"]["tmp_name"]);
-  if ($check !== false) {
-    $uploadOk = 1;
-  } else {
-    echo "File is not an image.";
-    $uploadOk = 0;
-  }
-
-  // Check if file already exists
-  if (file_exists($target_file)) {
-    echo "Sorry, file already exists.";
-    $uploadOk = 0;
-  }
-
+if (isset($_POST["appname"]) && isset($_FILES["file"])) {
+  $target_dir = "../uploads/" . $_POST["appname"] . '/';
+  $date = new DateTime();
+  $target_file = $target_dir . $date->getTimestamp() . '-' . basename($_FILES["file"]["name"]);
+  $uploadOk = 1;
+  $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+  $fileExtensions = array("jpg", "mov", "mp3", "mp4", "msg", "nes", "otf", "jsp", "key", "kml", "lnk", "log", "pct", "pdb", "pdf", "pif", "pkg", "png", "pps", "ppt", "prf",  "sql", "svg", "swf", "sys",  "tif", "ttf", "txt", "wav", "wma", "wmv", "xll", "xls", "zip", "docx",  "pptx");
   // Check file size
-  if ($_FILES["file"]["size"] > 500000) {
-    echo "Sorry, your file is too large.";
+  if ($_FILES["file"]["size"] > 2 * 1000 * 1024) {
+    http_response_code(400);
+    $response->msg = "Sorry, your file is too large. max is 2mb!";
     $uploadOk = 0;
-  }
-
-  // Allow certain file formats
-  if (
-    $imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
-    && $imageFileType != "gif"
+  } else if (
+    !in_array($imageFileType, $fileExtensions)
   ) {
-    echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
+    http_response_code(400);
+    $response->msg = "Sorry,format not allowed.";
     $uploadOk = 0;
-  }
-
-  // Check if $uploadOk is set to 0 by an error
-  if ($uploadOk == 0) {
-    echo "Sorry, your file was not uploaded.";
-    // if everything is ok, try to upload file
-  } else {
+  } else if ($uploadOk == 1) {
     if (!file_exists($target_dir)) {
       mkdir($target_dir, 0777, true);
     }
     if (move_uploaded_file($_FILES["file"]["tmp_name"], $target_file)) {
-      echo base_url(true) . $_POST["appname"] . '/' . htmlspecialchars($date->getTimestamp() . '-' . basename($_FILES["file"]["name"]));
+      http_response_code(201);
+      $response->url = base_url(true) . $_POST["appname"] . '/' . htmlspecialchars($date->getTimestamp() . '-' . basename($_FILES["file"]["name"]));
     } else {
-      echo "Sorry, there was an error uploading your file.";
+      http_response_code(400);
+      $response->msg = "Sorry, there was an error uploading your file.";
     }
   }
+} else {
+  http_response_code(400);
+  $response->msg = "Please set appname and file";
 }
+header('Content-Type: application/json');
+echo json_encode($response);
 ?>
