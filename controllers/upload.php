@@ -1,6 +1,10 @@
 
 <?php
 $response = new stdClass();
+header('Access-Control-Allow-Origin: *');
+header("Access-Control-Allow-Credentials: true");
+header('Access-Control-Allow-Methods: GET, PUT, POST, DELETE, OPTIONS');
+
 function base_url($atRoot = FALSE, $atCore = FALSE, $parse = FALSE)
 {
   if (isset($_SERVER['HTTP_HOST'])) {
